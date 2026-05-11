@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --color-graphite-950: #050505;
+  --color-graphite-900: #0D0D0D;
+  --color-graphite-800: #141414;
+  --color-graphite-700: #1F1F1F;
+  --color-graphite-600: #2A2A2A;
+  
+  --color-mercury: #F5F5F3; /* Warm off-white */
+  --color-signal-green: #00FF41;
+  --color-burn-orange: #FF4D00;
+  --color-steel: #737373;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-graphite-950 text-mercury font-sans antialiased selection:bg-signal-green selection:text-graphite-950;
+    background-image:
+      radial-gradient(circle at top left, rgba(0, 255, 65, 0.08), transparent 28%),
+      radial-gradient(circle at top right, rgba(255, 77, 0, 0.06), transparent 24%),
+      linear-gradient(180deg, #090909 0%, #050505 55%, #030303 100%);
+    background-attachment: fixed;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight uppercase;
+  }
+}
+
+.grid-bg {
+  background-image: linear-gradient(to right, #141414 1px, transparent 1px),
+    linear-gradient(to bottom, #141414 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.glass-panel {
+  @apply bg-graphite-900/80 backdrop-blur-md border border-graphite-700/50 shadow-2xl;
+}
+
+.glow-green {
+  box-shadow: 0 0 20px -5px rgba(0, 255, 65, 0.4);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px -5px rgba(255, 77, 0, 0.4);
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-mercury to-steel;
+}
+
+.italic-display {
+  @apply font-display italic tracking-tight;
+  font-variation-settings: "slnt" -10;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-graphite-950;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-graphite-700 rounded-full hover:bg-signal-green transition-colors;
+}

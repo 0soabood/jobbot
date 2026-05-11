@@ -1,0 +1,32 @@
+{
+  "name": "jobbot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Terminal-first AI copilot for job seekers",
+  "bin": {
+    "jobbot": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js guide",
+    "guide": "node src/index.js guide",
+    "init": "node src/index.js init",
+    "search": "node src/index.js search",
+    "autopilot": "node src/index.js autopilot",
+    "doctor": "node src/index.js doctor",
+    "api:dev": "node src/server.js",
+    "test": "node --test tests/run-tests.js tests/api.test.js tests/services.test.js",
+    "test:unit": "node --test tests/run-tests.js",
+    "test:api": "node --test tests/api.test.js",
+    "test:services": "node --test tests/services.test.js",
+    "ui:dev": "npm --prefix ui run dev",
+    "ui:build": "npm --prefix ui run build",
+    "ui:lint": "npm --prefix ui run lint"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "firebase": "^12.13.0"
+  }
+}
