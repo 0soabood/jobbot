@@ -29,7 +29,7 @@ const server = http.createServer(async (request, response) => {
       sendJson(response, error.statusCode, { error: error.message });
       return;
     }
-    console.error(`[Server Error] ${request.method} ${request.url}:`, error);
+    console.error("[Server Error]", request.method, request.url, error);
     sendJson(response, 500, { error: error?.message ?? "Unexpected server error" });
   }
 });

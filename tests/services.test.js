@@ -18,8 +18,8 @@ test("test app layout exists", async () => {
 test("isAiConfigured returns false without API key", () => {
   // Save original env
   const originalKey = process.env.OPENAI_API_KEY;
-  const originalJobbotKeyAlt = process.env.JOBBOT_OPENAI_API_KEY;
-  const originalJobbotKey = process.env.JOB_BOT_OPENAI_API_KEY;
+  const originalJobbotKey = process.env.JOBBOT_OPENAI_API_KEY;
+  const originalJobBotKeyAlias = process.env.JOB_BOT_OPENAI_API_KEY;
   
   delete process.env.OPENAI_API_KEY;
   delete process.env.JOBBOT_OPENAI_API_KEY;
@@ -29,13 +29,13 @@ test("isAiConfigured returns false without API key", () => {
   
   // Restore
   if (originalKey) process.env.OPENAI_API_KEY = originalKey;
-  if (originalJobbotKeyAlt) process.env.JOBBOT_OPENAI_API_KEY = originalJobbotKeyAlt;
-  if (originalJobbotKey) process.env.JOB_BOT_OPENAI_API_KEY = originalJobbotKey;
+  if (originalJobbotKey) process.env.JOBBOT_OPENAI_API_KEY = originalJobbotKey;
+  if (originalJobBotKeyAlias) process.env.JOB_BOT_OPENAI_API_KEY = originalJobBotKeyAlias;
 });
 
 test("isAiConfigured returns true with API key", () => {
   const originalKey = process.env.OPENAI_API_KEY;
-  const originalJobbotKeyAlt = process.env.JOBBOT_OPENAI_API_KEY;
+  const originalJobbotKey = process.env.JOBBOT_OPENAI_API_KEY;
   
   process.env.OPENAI_API_KEY = "test-key";
   assert.equal(isAiConfigured(), true);
@@ -47,7 +47,7 @@ test("isAiConfigured returns true with API key", () => {
   // Restore
   if (originalKey) process.env.OPENAI_API_KEY = originalKey;
   else delete process.env.OPENAI_API_KEY;
-  if (originalJobbotKeyAlt) process.env.JOBBOT_OPENAI_API_KEY = originalJobbotKeyAlt;
+  if (originalJobbotKey) process.env.JOBBOT_OPENAI_API_KEY = originalJobbotKey;
   else delete process.env.JOBBOT_OPENAI_API_KEY;
 });
 
