@@ -14,6 +14,11 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+export const WORKSPACE_API_URL =
+  import.meta.env.VITE_JOBBOT_API_URL ??
+  import.meta.env.VITE_JOB_BOT_API_URL ??
+  'http://localhost:8787/api';
+
 console.log("[DEBUG] Deployed Firebase Config:", firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
@@ -40,7 +45,15 @@ class JobBotAPI {
 
   async getSettings(): Promise<AppSettings> {
     const snap = await getDoc(doc(db, 'users', this.uid));
-    return snap.exists() && snap.data().settings ? snap.data().settings : { theme: 'dark' } as any;
+    return snap.exists() && snap.data().settings
+      ? (snap.data().settings as AppSettings)
+      : {
+          theme: 'dark',
+          aiProvider: 'OpenAI-compatible',
+          modelName: 'gpt-5-mini',
+          apiUrl: WORKSPACE_API_URL,
+          demoMode: false,
+        };
   }
 
   async saveSettings(settings: AppSettings): Promise<AppSettings> {
@@ -60,7 +73,7 @@ class JobBotAPI {
       recentPackets: packets.slice(0, 5),
       momentumScore: packets.length * 10,
       credits, // Added explicitly for the Dashboard
-    } as any;
+    };
   }
 
   async searchJobs(searchQuery?: string, resultLimit = 20, remoteOnly = false): Promise<JobListing[]> {

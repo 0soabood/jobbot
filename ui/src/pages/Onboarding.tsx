@@ -25,6 +25,7 @@ export default function Onboarding() {
     locations: '',
   });
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleNext = () => {
@@ -49,6 +50,7 @@ export default function Onboarding() {
     }
 
     setSaving(true);
+    setSaveError(null);
     try {
       const profile = {
         fullName: formData.fullName,
@@ -66,9 +68,8 @@ export default function Onboarding() {
 
       await api.saveProfile(profile);
       navigate('/dashboard');
-    } catch (error) {
-      console.error('Failed to save profile:', error);
-      alert('Failed to save profile. Please try again.');
+    } catch (error: unknown) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -220,6 +221,7 @@ export default function Onboarding() {
               {saving ? 'Saving...' : currentStep === STEPS.length - 1 ? 'Finish Profile' : 'Continue'} <ArrowRight className="w-4 h-4" />
             </Button>
           </footer>
+          {saveError && <p className="mt-4 text-sm text-burn-orange">{saveError}</p>}
         </Card>
 
         <p className="text-center text-[10px] font-mono text-steel uppercase tracking-[0.2em] animate-pulse">

@@ -12,14 +12,15 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const data = await api.getSettings();
         setSettings(data);
-      } catch (error) {
-        console.error('Failed to load settings:', error);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load settings.');
       } finally {
         setLoading(false);
       }
@@ -35,9 +36,15 @@ export default function Settings() {
   const handleSave = async () => {
     if (!settings) return;
     setSaving(true);
-    const saved = await api.saveSettings(settings);
-    setSettings(saved);
-    setTimeout(() => setSaving(false), 400);
+    setError(null);
+    try {
+      const saved = await api.saveSettings(settings);
+      setSettings(saved);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save settings.');
+    } finally {
+      setTimeout(() => setSaving(false), 400);
+    }
   };
 
   const handleReset = () => {
@@ -58,6 +65,14 @@ export default function Settings() {
   };
 
   if (loading || !settings) {
+    if (error) {
+      return (
+        <div className="space-y-4">
+          <p className="text-burn-orange text-sm">Unable to load settings: {error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      );
+    }
     return <div className="animate-pulse bg-graphite-900/10 h-screen" />;
   }
 
@@ -220,6 +235,7 @@ export default function Settings() {
               </div>
 
               <div className="space-y-3">
+                {error && <p className="text-xs text-burn-orange">{error}</p>}
                 <Button className="w-full gap-2 text-xs h-12" onClick={handleSave} disabled={saving}>
                   <Zap className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Settings'}
                 </Button>

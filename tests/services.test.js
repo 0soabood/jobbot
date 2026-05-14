@@ -2,42 +2,56 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { isAiConfigured } from "../src/services/ai.js";
 import { searchJobs } from "../src/services/jobs.js";
-import { getPaths } from "../src/lib/paths.js";
+import { ensureAppLayout, getPaths } from "../src/lib/paths.js";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT_DIR = join(__dirname, "..");
+const paths = getPaths(ROOT_DIR);
+
+test("test app layout exists", async () => {
+  await ensureAppLayout(paths);
+});
 
 test("isAiConfigured returns false without API key", () => {
   // Save original env
   const originalKey = process.env.OPENAI_API_KEY;
+  const originalJobbotKeyAlt = process.env.JOBBOT_OPENAI_API_KEY;
   const originalJobbotKey = process.env.JOB_BOT_OPENAI_API_KEY;
   
   delete process.env.OPENAI_API_KEY;
+  delete process.env.JOBBOT_OPENAI_API_KEY;
   delete process.env.JOB_BOT_OPENAI_API_KEY;
   
   assert.equal(isAiConfigured(), false);
   
   // Restore
   if (originalKey) process.env.OPENAI_API_KEY = originalKey;
+  if (originalJobbotKeyAlt) process.env.JOBBOT_OPENAI_API_KEY = originalJobbotKeyAlt;
   if (originalJobbotKey) process.env.JOB_BOT_OPENAI_API_KEY = originalJobbotKey;
 });
 
 test("isAiConfigured returns true with API key", () => {
   const originalKey = process.env.OPENAI_API_KEY;
+  const originalJobbotKeyAlt = process.env.JOBBOT_OPENAI_API_KEY;
   
   process.env.OPENAI_API_KEY = "test-key";
+  assert.equal(isAiConfigured(), true);
+
+  delete process.env.OPENAI_API_KEY;
+  process.env.JOBBOT_OPENAI_API_KEY = "test-key-alt";
   assert.equal(isAiConfigured(), true);
   
   // Restore
   if (originalKey) process.env.OPENAI_API_KEY = originalKey;
   else delete process.env.OPENAI_API_KEY;
+  if (originalJobbotKeyAlt) process.env.JOBBOT_OPENAI_API_KEY = originalJobbotKeyAlt;
+  else delete process.env.JOBBOT_OPENAI_API_KEY;
 });
 
 test("searchJobs with demo data", async () => {
-  const paths = getPaths(ROOT_DIR);
   const search = { query: "operations", limit: 5, useDemoData: true };
   const profile = { targetRoles: ["Product Manager"], skills: ["Operations"] };
   
@@ -47,7 +61,6 @@ test("searchJobs with demo data", async () => {
 });
 
 test("searchJobs filters by query", async () => {
-  const paths = getPaths(ROOT_DIR);
   const search = { query: "nonexistent123", limit: 5, useDemoData: true };
   const profile = { targetRoles: ["Product Manager"], skills: ["Operations"] };
   

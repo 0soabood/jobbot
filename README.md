@@ -175,9 +175,12 @@ npm run ui:build
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `OPENAI_API_KEY` | OpenAI API key | - |
-| `JOB_BOT_OPENAI_API_KEY` | Alternative OpenAI key var | - |
-| `JOB_BOT_UI_API_PORT` | API server port | 8787 |
-| `VITE_JOB_BOT_API_URL` | UI API URL | http://localhost:8787/api |
+| `JOBBOT_OPENAI_API_KEY` | Preferred alternative OpenAI key var | - |
+| `JOB_BOT_OPENAI_API_KEY` | Backward-compatible alias | - |
+| `JOBBOT_UI_API_PORT` | Preferred API server port var | 8787 |
+| `JOB_BOT_UI_API_PORT` | Backward-compatible alias | 8787 |
+| `VITE_JOBBOT_API_URL` | Preferred UI API URL var | http://localhost:8787/api |
+| `VITE_JOB_BOT_API_URL` | Backward-compatible alias | http://localhost:8787/api |
 
 ## Application Workflow
 
@@ -208,7 +211,7 @@ The packet is designed so the last manual step is the final application review a
 
 ## AI Behavior
 
-If `OPENAI_API_KEY` or `JOB_BOT_OPENAI_API_KEY` is present, jobbot will call the OpenAI Chat Completions API and ask for structured JSON output.
+If `OPENAI_API_KEY`, `JOBBOT_OPENAI_API_KEY`, or `JOB_BOT_OPENAI_API_KEY` is present, jobbot will call the OpenAI Chat Completions API and ask for structured JSON output.
 
 If no key is present, jobbot still works in fallback mode by generating deterministic drafts from your profile and the job description.
 
@@ -233,6 +236,18 @@ If no key is present, jobbot still works in fallback mode by generating determin
 3. Make your changes
 4. Run tests: `npm test`
 5. Submit a pull request
+
+## Zero-error verification checklist
+
+Before opening a PR, run:
+
+```bash
+npm test
+npm run ui:lint
+npm run ui:build
+```
+
+All commands must pass with no failing checks.
 
 ## License
 

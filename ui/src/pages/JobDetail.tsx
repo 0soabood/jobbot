@@ -11,23 +11,31 @@ export default function JobDetail() {
   const navigate = useNavigate();
   const [job, setJob] = useState<JobListing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      const loadJob = async () => {
-        try {
-          const data = await api.getJob(id);
-          if (data) {
-            setJob(data);
-          }
-        } catch (error) {
-          console.error('Failed to load job:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      void loadJob();
+    if (!id) {
+      setLoading(false);
+      setError('Job id is required.');
+      return;
     }
+
+    const loadJob = async () => {
+      setError(null);
+      try {
+        const data = await api.getJob(id);
+        if (data) {
+          setJob(data);
+          return;
+        }
+        setError('Job not found.');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load job.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    void loadJob();
   }, [id]);
 
   const handleGeneratePacket = async () => {
@@ -35,18 +43,28 @@ export default function JobDetail() {
     try {
       const packet = await api.generatePacket(job.id);
       navigate(`/applications/${packet.id}`);
-    } catch (error: any) {
-      alert(error.message || "Failed to generate packet. Please check your credits.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to generate packet.');
     }
   };
 
-  if (loading || !job) {
+  if (loading) {
     return <div className="animate-pulse bg-graphite-900/10 h-screen" />;
+  }
+
+  if (!job) {
+    return (
+      <div className="space-y-4">
+        <p className="text-burn-orange text-sm">{error ?? 'Job not found.'}</p>
+        <Button variant="outline" onClick={() => navigate('/jobs')}>Back to Jobs</Button>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-12">
       <header className="space-y-6">
+        {error && <p className="text-sm text-burn-orange">{error}</p>}
         <button onClick={() => navigate(-1)} className="text-steel hover:text-mercury flex items-center gap-2 text-sm transition-colors group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Intelligence
         </button>

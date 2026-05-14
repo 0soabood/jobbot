@@ -17,23 +17,31 @@ export default function ApplicationWorkspace() {
   const [copied, setCopied] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [markingReady, setMarkingReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      const loadPacket = async () => {
-        try {
-          const data = await api.getPacket(id);
-          if (data) {
-            setPacket(data);
-          }
-        } catch (error) {
-          console.error('Failed to load application:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      void loadPacket();
+    if (!id) {
+      setLoading(false);
+      setError('Application id is required.');
+      return;
     }
+
+    const loadPacket = async () => {
+      setError(null);
+      try {
+        const data = await api.getPacket(id);
+        if (data) {
+          setPacket(data);
+          return;
+        }
+        setError('Application packet not found.');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load application.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    void loadPacket();
   }, [id]);
 
   const handleCopy = (text: string, label: string) => {
@@ -44,30 +52,60 @@ export default function ApplicationWorkspace() {
 
   const toggleChecklist = async (itemId: string) => {
     if (!packet) return;
-    const checklist = packet.checklist.map((item) =>
-      item.id === itemId ? { ...item, completed: !item.completed } : item,
-    );
-    const updated = await api.updateApplication(packet.id, { checklist });
-    setPacket(updated);
+    setError(null);
+    try {
+      const checklist = packet.checklist.map((item) =>
+        item.id === itemId ? { ...item, completed: !item.completed } : item,
+      );
+      const updated = await api.updateApplication(packet.id, { checklist });
+      setPacket(updated);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update checklist.');
+    }
   };
 
   const handleSave = async () => {
     if (!packet) return;
     setSaving(true);
-    await api.updateApplication(packet.id, packet);
-    setTimeout(() => setSaving(false), 500);
+    setError(null);
+    try {
+      await api.updateApplication(packet.id, packet);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save changes.');
+    } finally {
+      setTimeout(() => setSaving(false), 500);
+    }
   };
 
   const handleMarkReady = async () => {
     if (!packet) return;
     setMarkingReady(true);
-    const updated = await api.updateApplication(packet.id, { status: 'reviewing' });
-    setPacket(updated);
-    setTimeout(() => setMarkingReady(false), 400);
+    setError(null);
+    if (id) {
+      try {
+        const updated = await api.updateApplication(packet.id, { status: 'reviewing' });
+        setPacket(updated);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to update status.');
+      } finally {
+        setTimeout(() => setMarkingReady(false), 400);
+      }
+    }
   };
 
-  if (loading || !packet) {
+  if (loading) {
     return <div className="animate-pulse bg-graphite-900/10 h-screen" />;
+  }
+
+  if (!packet) {
+    return (
+      <div className="space-y-4">
+        <p className="text-burn-orange text-sm">{error ?? 'Application packet not found.'}</p>
+        <Link to="/applications">
+          <Button variant="outline">Back to Pipeline</Button>
+        </Link>
+      </div>
+    );
   }
 
   const tabs = [
@@ -101,6 +139,7 @@ export default function ApplicationWorkspace() {
           </Button>
         </div>
       </header>
+      {error && <p className="text-sm text-burn-orange">{error}</p>}
 
       <div className="flex border-b border-graphite-800 bg-graphite-950/80 backdrop-blur sticky top-16 z-20 -mx-10 px-10">
         {tabs.map((tab) => (

@@ -66,6 +66,7 @@ export interface DashboardStats {
   topMatchCount: number;
   recentPackets: ApplicationPacket[];
   momentumScore: number;
+  credits?: number;
 }
 
 export interface AppSettings {

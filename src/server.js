@@ -11,7 +11,10 @@ import { searchJobs } from "./services/jobs.js";
 import { generateApplicationPacket } from "./services/ai.js";
 import { saveApplicationPacket } from "./services/applications.js";
 
-const PORT = Number.parseInt(process.env.JOBBOT_UI_API_PORT ?? "8787", 10);
+const PORT = Number.parseInt(
+  process.env.JOBBOT_UI_API_PORT ?? process.env.JOB_BOT_UI_API_PORT ?? "8787",
+  10,
+);
 
 await loadDotEnv(process.cwd());
 
@@ -22,6 +25,10 @@ const server = http.createServer(async (request, response) => {
   try {
     await handleRequest(request, response);
   } catch (error) {
+    if (error instanceof HttpError) {
+      sendJson(response, error.statusCode, { error: error.message });
+      return;
+    }
     console.error(`[Server Error] ${request.method} ${request.url}:`, error);
     sendJson(response, 500, { error: error?.message ?? "Unexpected server error" });
   }
@@ -30,6 +37,13 @@ const server = http.createServer(async (request, response) => {
 server.listen(PORT, () => {
   console.log(`jobbot API listening on http://localhost:${PORT}/api`);
 });
+
+class HttpError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
 
 async function handleRequest(request, response) {
   if (request.method === "OPTIONS") {
@@ -58,6 +72,7 @@ async function handleRequest(request, response) {
 
   if (request.method === "PUT" && route === "/profile") {
     const profile = await readBody(request);
+    assertObject(profile, "profile");
     const nextConfig = applyUiProfile(config, profile);
     await saveConfig(paths, nextConfig);
     sendJson(response, 200, toUiProfile(nextConfig));
@@ -71,6 +86,7 @@ async function handleRequest(request, response) {
 
   if (request.method === "PUT" && route === "/settings") {
     const settings = await readBody(request);
+    assertObject(settings, "settings");
     const nextConfig = applyUiSettings(config, settings);
     await saveConfig(paths, nextConfig);
     await writeJson(paths.uiSettingsFile, {
@@ -131,6 +147,7 @@ async function handleRequest(request, response) {
 
   if (request.method === "POST" && route === "/applications") {
     const body = await readBody(request);
+    assertObject(body, "request body");
     const jobId = String(body?.jobId ?? "");
     if (!jobId) {
       sendJson(response, 400, { error: "jobId is required" });
@@ -169,6 +186,7 @@ async function handleRequest(request, response) {
   if ((request.method === "PATCH" || request.method === "PUT") && route.startsWith("/applications/")) {
     const packetId = decodeURIComponent(route.slice("/applications/".length));
     const body = await readBody(request);
+    assertObject(body, "application patch");
     const updated = await updateUiPacket(packetId, body);
     if (!updated) {
       sendJson(response, 404, { error: "Application packet not found" });
@@ -585,7 +603,17 @@ async function readBody(request) {
     return {};
   }
 
-  return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+  } catch {
+    throw new HttpError(400, "Invalid JSON body");
+  }
+}
+
+function assertObject(value, label) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new HttpError(400, `${label} must be a JSON object`);
+  }
 }
 
 function sendJson(response, statusCode, body) {

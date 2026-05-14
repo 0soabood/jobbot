@@ -18,4 +18,5 @@ This UI is a Vite + React application that talks to the local workspace API expo
 ## Notes
 
 - The API client currently lives in `src/lib/api/mock-client.ts`.
-- The client talks to `http://localhost:8787/api` by default, or a custom `VITE_JOBBOT_API_URL` if provided.
+- The client uses `VITE_JOBBOT_API_URL` as the preferred API URL variable.
+- `VITE_JOB_BOT_API_URL` is also accepted as a backward-compatible alias.

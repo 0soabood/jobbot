@@ -10,20 +10,33 @@ import { Progress } from '../components/ui/Progress';
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadStats = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getDashboardStats();
+      setStats(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard stats.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const data = await api.getDashboardStats();
-        setStats(data);
-      } catch (error) {
-        console.error('Failed to load dashboard stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     void loadStats();
   }, []);
+
+  if (error && !stats) {
+    return (
+      <div className="space-y-4">
+        <p className="text-burn-orange text-sm">Unable to load dashboard: {error}</p>
+        <Button onClick={() => void loadStats()}>Retry</Button>
+      </div>
+    );
+  }
 
   if (loading || !stats) {
     return (
@@ -77,7 +90,7 @@ export default function Dashboard() {
             <Coins className="w-4 h-4 text-burn-orange" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-display font-bold">{(stats as any).credits ?? 0}</div>
+            <div className="text-3xl font-display font-bold">{stats.credits ?? 0}</div>
             <p className="text-xs text-steel mt-1">Packets available to generate.</p>
           </CardContent>
         </Card>

@@ -13,6 +13,7 @@ export default function Jobs() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
 
@@ -22,14 +23,15 @@ export default function Jobs() {
 
   const loadJobs = async (query?: string) => {
     setLoading(true);
+    setError(null);
     try {
       const data = await api.searchJobs(query);
       setJobs(data);
       if (data.length > 0 && !selectedJob) {
         setSelectedJob(data[0]);
       }
-    } catch (error) {
-      console.error('Failed to load jobs:', error);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load jobs.');
     } finally {
       setLoading(false);
     }
@@ -80,6 +82,11 @@ export default function Jobs() {
             Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="h-32 bg-graphite-900 rounded-2xl animate-pulse" />
             ))
+          ) : error ? (
+            <div className="text-center py-20 text-burn-orange space-y-3">
+              <p>Unable to load jobs: {error}</p>
+              <Button onClick={() => void loadJobs(searchQuery || undefined)}>Retry</Button>
+            </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-20 text-steel">
               <Search className="w-10 h-10 mx-auto mb-4 opacity-20" />

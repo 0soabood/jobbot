@@ -1,7 +1,7 @@
 import { truncate } from "../lib/text.js";
 
 export function isAiConfigured() {
-  return Boolean(process.env.JOBBOT_OPENAI_API_KEY || process.env.OPENAI_API_KEY);
+  return Boolean(getOpenAiApiKey());
 }
 
 export async function generateApplicationPacket({ config, profile, documents, job }) {
@@ -34,7 +34,7 @@ export async function generateApplicationPacket({ config, profile, documents, jo
 }
 
 async function callOpenAI({ config, profile, documents, job }) {
-  const apiKey = process.env.JOBBOT_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAiApiKey();
   const response = await fetch(`${config.ai.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
@@ -110,6 +110,14 @@ async function callOpenAI({ config, profile, documents, job }) {
     interviewPrep: ensureStrings(parsed.interviewPrep, 6),
     notes: ensureStrings(parsed.notes, 6),
   };
+}
+
+function getOpenAiApiKey() {
+  return (
+    process.env.JOBBOT_OPENAI_API_KEY ||
+    process.env.JOB_BOT_OPENAI_API_KEY ||
+    process.env.OPENAI_API_KEY
+  );
 }
 
 function buildFallbackPacket({ profile, documents, job, reason }) {

@@ -34,8 +34,7 @@ jobs:
 
       - name: Lint
         run: |
-          npm run ui:lint 2>/dev/null || true
-          npx tsc --noEmit 2>/dev/null || true
+          npm run ui:lint
 
       - name: Run tests
         run: npm test
